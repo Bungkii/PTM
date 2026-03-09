@@ -3,199 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบออกใบสั่ง (PTM) - โทนสีแดง</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>ระบบออกใบสั่ง PTM (พิมพ์ตามแบบฟอร์ม)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-red: #9e1b1b; /* สีแดงเข้ม สำนักงานตำรวจแห่งชาติ */
-            --dark-red: #6a0f0f;
-            --paper-bg: #fffefe;
-            --text-main: #222;
-        }
+        :root { --police-red: #9e1b1b; }
+        body { font-family: 'Sarabun', sans-serif; background: #eee; margin: 0; padding: 20px; display: flex; gap: 20px; }
         
-        body { 
-            font-family: 'Sarabun', sans-serif; 
-            background-color: #f0e6e6; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            gap: 20px; 
-            flex-wrap: wrap;
+        /* ฝั่งซ้าย: ฟอร์ม (จะถูกซ่อนตอนพิมพ์) */
+        .form-side { background: white; padding: 20px; width: 350px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: fit-content; }
+        .form-side h2 { color: var(--police-red); font-size: 20px; text-align: center; }
+        .input-group { margin-bottom: 10px; }
+        label { display: block; font-size: 13px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--police-red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        button:hover { background: #7a1414; }
+
+        /* ฝั่งขวา: พรีวิวใบสั่ง (ที่จะพิมพ์) */
+        .preview-side { flex: 1; display: flex; justify-content: center; }
+        .ticket-page { 
+            background: white; width: 210mm; min-height: 297mm; padding: 20mm; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.2); box-sizing: border-box; position: relative;
         }
 
-        /* ---------------- ฟอร์มกรอกข้อมูล ---------------- */
-        .form-container { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(158, 27, 27, 0.15); 
-            flex: 1; 
-            min-width: 350px;
-            border-top: 5px solid var(--primary-red);
-        }
-        .form-container h2 { text-align: center; color: var(--primary-red); margin-top: 0; }
-        .form-group { margin-bottom: 12px; }
-        label { font-weight: 600; display: block; margin-bottom: 5px; color: #444; font-size: 14px; }
-        input { 
-            width: 100%; padding: 8px 12px; border: 1px solid #ccc; 
-            border-radius: 4px; box-sizing: border-box; font-size: 15px;
-            font-family: 'Sarabun', sans-serif;
-        }
-        input:focus { outline: none; border-color: var(--primary-red); box-shadow: 0 0 5px rgba(158, 27, 27, 0.3); }
-
-        /* ---------------- ใบสั่ง Preview ---------------- */
-        .ticket-container { 
-            flex: 1.5; 
-            min-width: 500px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .ticket { 
-            background-color: var(--paper-bg); 
-            width: 100%;
-            max-width: 800px;
-            padding: 40px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            color: var(--text-main); 
-            position: relative;
-        }
+        /* การจัดหน้าตาให้เหมือน PDF */
+        .header { text-align: center; margin-bottom: 20px; }
+        .garuda { width: 70px; }
+        .ticket-title { font-size: 18px; font-weight: bold; margin: 5px 0; }
+        .ticket-no { position: absolute; top: 80px; right: 80px; font-weight: bold; }
         
-        /* หัวกระดาษ */
-        .ticket-header { text-align: center; margin-bottom: 30px; }
-        .garuda { width: 80px; height: auto; margin-bottom: 10px; }
-        .ticket-header h3 { margin: 0; font-size: 24px; color: var(--primary-red); font-weight: 700; }
-        .ticket-header p { margin: 5px 0 0 0; font-size: 14px; color: #555; }
-        .ticket-no { position: absolute; top: 40px; right: 40px; color: var(--primary-red); font-weight: bold; }
+        .content-row { display: flex; margin-bottom: 8px; border-bottom: 1px dotted #999; }
+        .label-th { font-weight: bold; flex-shrink: 0; }
+        .label-en { font-size: 12px; color: #555; margin-left: 5px; }
+        .value { color: #000; padding-left: 10px; flex-grow: 1; font-weight: normal; }
 
-        /* ส่วนเนื้อหาใบสั่ง */
-        .section-title { 
-            font-weight: bold; color: var(--primary-red); 
-            border-bottom: 2px solid var(--primary-red); 
-            padding-bottom: 5px; margin: 20px 0 10px 0; font-size: 16px;
+        .legal-box { border: 1px solid #ccc; padding: 10px; font-size: 12px; margin-top: 20px; text-align: justify; }
+        .qr-area { display: flex; justify-content: space-around; margin-top: 40px; }
+        .qr-placeholder { border: 1px solid #000; width: 100px; height: 100px; text-align: center; font-size: 10px; line-height: 100px; }
+
+        /* ✨ ส่วนสำคัญ: ตั้งค่าสำหรับการพิมพ์ ✨ */
+        @media print {
+            body { background: none; padding: 0; }
+            .form-side { display: none !important; } /* ซ่อนฟอร์มกรอกข้อมูล */
+            .preview-side { width: 100%; margin: 0; }
+            .ticket-page { box-shadow: none; width: 100%; padding: 10mm; }
+            @page { size: A4; margin: 0; }
         }
-        .ticket-row { display: flex; margin-bottom: 8px; font-size: 15px; line-height: 1.5; }
-        .ticket-row .label { width: 35%; font-weight: 600; color: #444; }
-        .ticket-row .val { width: 65%; color: var(--dark-red); border-bottom: 1px dotted #aaa; min-height: 22px; }
-
-        /* ส่วนท้าย / ข้อมูลเจ้าหน้าที่ */
-        .footer-info { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px; font-size: 14px; }
-        
-        .qr-section { display: flex; justify-content: space-around; margin-top: 30px; }
-        .qr-box { text-align: center; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
-        .qr-placeholder { width: 100px; height: 100px; background: #eee; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: #999; border: 1px dashed #ccc;}
     </style>
 </head>
 <body>
 
-    <div class="form-container">
-        <h2>ระบบ PTM (ใบสั่งพินัย)</h2>
-        
-        <div class="form-group"><label>เลขที่ใบสั่ง:</label><input type="text" id="in-ticketNo" placeholder="เช่น 123456789"></div>
-        
-        <div class="form-group"><label>ชื่อผู้ขับขี่:</label><input type="text" id="in-driver"></div>
-        <div class="form-group"><label>เลขบัตรประชาชน/พาสปอร์ต:</label><input type="text" id="in-idNo" maxlength="13"></div>
-        
-        <div class="form-group"><label>ประเภทรถ:</label><input type="text" id="in-vehType" placeholder="เช่น รถยนต์นั่งส่วนบุคคล"></div>
-        <div class="form-group"><label>ทะเบียนรถ:</label><input type="text" id="in-plate"></div>
-        
-        <div class="form-group"><label>สถานที่เกิดเหตุ:</label><input type="text" id="in-location"></div>
-        <div class="form-group" style="display: flex; gap: 10px;">
-            <div style="flex: 1;"><label>วันที่:</label><input type="date" id="in-date"></div>
-            <div style="flex: 1;"><label>เวลา:</label><input type="time" id="in-time"></div>
-        </div>
-        
-        <div class="form-group"><label>ข้อหาที่กระทำผิด:</label><input type="text" id="in-offence"></div>
-        
-        <div class="form-group" style="display: flex; gap: 10px;">
-            <div style="flex: 1;"><label>อัตราโทษปรับสูงสุด:</label><input type="number" id="in-maxFine"></div>
-            <div style="flex: 1;"><label>ค่าปรับที่ต้องชำระ:</label><input type="number" id="in-actualFine"></div>
-        </div>
-
-        <div class="form-group"><label>ชื่อเจ้าหน้าที่ผู้ออกใบสั่ง:</label><input type="text" id="in-officer"></div>
-        <div class="form-group"><label>รหัสเจ้าหน้าที่:</label><input type="text" id="in-offCode"></div>
-        <div class="form-group"><label>หน่วยงาน:</label><input type="text" id="in-agency" placeholder="เช่น สภ.เมือง..."></div>
+    <div class="form-side">
+        <h2>บันทึกข้อมูลใบสั่ง</h2>
+        <div class="input-group"><label>เลขที่ใบสั่ง:</label><input type="text" oninput="update('ticketNo', this.value)"></div>
+        <div class="input-group"><label>ชื่อผู้ขับขี่:</label><input type="text" oninput="update('driver', this.value)"></div>
+        <div class="input-group"><label>เลขบัตร ปชช.:</label><input type="text" oninput="update('idNo', this.value)"></div>
+        <div class="input-group"><label>ทะเบียนรถ:</label><input type="text" oninput="update('plate', this.value)"></div>
+        <div class="input-group"><label>ข้อหา:</label><input type="text" oninput="update('charge', this.value)"></div>
+        <div class="input-group"><label>ค่าปรับ (บาท):</label><input type="number" oninput="update('fine', this.value)"></div>
+        <button onclick="window.print()">🖨️ พิมพ์ใบสั่ง (Print to PDF)</button>
     </div>
 
-    <div class="ticket-container">
-        <div class="ticket" id="print-area">
-            <div class="ticket-no">เลขที่ใบสั่ง: <span id="out-ticketNo">__________________</span></div>
+    <div class="preview-side">
+        <div class="ticket-page">
+            <div class="header">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Garuda_Emblem_of_Thailand.svg/150px-Garuda_Emblem_of_Thailand.svg.png" class="garuda">
+                <div class="ticket-title">ใบสั่งเจ้าพนักงานจราจร (คำสั่งปรับเป็นพินัย) [cite: 1]</div>
+                <div style="font-size: 14px;">Traffic Ticket issued by Traffic Officer (An order to impose a Pinai regulatory fine) [cite: 2, 3]</div>
+            </div>
+
+            <div class="ticket-no">เลขที่ใบสั่ง (Traffic Ticket No.): <span id="out-ticketNo" class="value"></span> [cite: 4]</div>
+
+            <div class="content-row">
+                <span class="label-th">ด้วยผู้ขับขี่</span><span class="label-en">(Driver's Name):</span>
+                <span id="out-driver" class="value"></span> [cite: 4]
+            </div>
+            <div class="content-row">
+                <span class="label-th">เลขบัตรประจำตัวประชาชน</span><span class="label-en">(ID No.):</span>
+                <span id="out-idNo" class="value"></span> [cite: 5]
+            </div>
+            <div class="content-row">
+                <span class="label-th">ทะเบียนรถ</span><span class="label-en">(License Plate No.):</span>
+                <span id="out-plate" class="value"></span> [cite: 7]
+            </div>
+            <div class="content-row">
+                <span class="label-th">กระทำผิดข้อหา</span><span class="label-en">Committing an offence:</span>
+                <span id="out-charge" class="value"></span> [cite: 10]
+            </div>
+            <div class="content-row">
+                <span class="label-th">รวมจำนวนค่าปรับที่ต้องชำระทั้งสิ้น</span><span class="label-en">Total amount:</span>
+                <span id="out-fine" class="value" style="font-weight: bold;"></span> <span class="label-th">บาท (Baht)</span> [cite: 36, 41]
+            </div>
+
+            <div class="legal-box">
+                อาศัยอำนาจตามความในมาตรา 140 วรรคสี่ และมาตรา 141 แห่ง พ.ร.บ.จราจรทางบก พ.ศ. 2522... ผู้รับใบสั่งต้องชำระค่าปรับภายในระยะเวลาไม่เกิน 30 วัน [cite: 42]
+            </div>
+
+            <div class="qr-area">
+                <div class="qr-placeholder">สิทธิตามกฎหมาย [cite: 62]</div>
+                <div class="qr-placeholder" style="border-color: var(--police-red); color: var(--police-red); font-weight: bold;">แสกนชำระค่าปรับ [cite: 63]</div>
+            </div>
             
-            <div class="ticket-header">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Garuda_Emblem_of_Thailand.svg/150px-Garuda_Emblem_of_Thailand.svg.png" alt="ครุฑ" class="garuda">
-                <h3>ใบสั่งเจ้าพนักงานจราจร</h3>
-                <p>(คำสั่งปรับเป็นพินัย)<br>Traffic Ticket issued by Traffic Officer</p>
+            <div style="margin-top: 30px;">
+                <div class="content-row"><span class="label-th">เจ้าหน้าที่ของรัฐ (Government officer):</span><span class="value">______________________</span> [cite: 57]</div>
+                <div class="content-row"><span class="label-th">หน่วยงานผู้ออกใบสั่ง (Agency):</span><span class="value">______________________</span> [cite: 58]</div>
             </div>
-
-            <div class="section-title">ข้อมูลผู้ขับขี่และยานพาหนะ</div>
-            <div class="ticket-row"><div class="label">ด้วยผู้ขับขี่ (Driver's Name):</div><div class="val" id="out-driver"></div></div>
-            <div class="ticket-row"><div class="label">เลขบัตรประจำตัวประชาชน:</div><div class="val" id="out-idNo"></div></div>
-            <div class="ticket-row"><div class="label">ได้ขับขี่ (Vehicle Type):</div><div class="val" id="out-vehType"></div></div>
-            <div class="ticket-row"><div class="label">ทะเบียนรถ (License Plate No.):</div><div class="val" id="out-plate"></div></div>
-
-            <div class="section-title">รายละเอียดการกระทำผิด</div>
-            <div class="ticket-row"><div class="label">เหตุเกิดขึ้นที่ (Place of incident):</div><div class="val" id="out-location"></div></div>
-            <div class="ticket-row">
-                <div class="label">วันที่ (Date):</div><div class="val" style="width: 30%;" id="out-date"></div>
-                <div class="label" style="width: 15%; padding-left: 10px;">เวลา (Time):</div><div class="val" style="width: 20%;" id="out-time"></div>
-            </div>
-            <div class="ticket-row"><div class="label">กระทำผิดข้อหา (Offence):</div><div class="val" id="out-offence"></div></div>
-            
-            <div class="section-title">อัตราค่าปรับเป็นพินัย</div>
-            <div class="ticket-row"><div class="label">อัตราค่าปรับตามกฎหมาย ไม่เกิน:</div><div class="val" id="out-maxFine"></div><span style="margin-left: 10px;">บาท</span></div>
-            <div class="ticket-row"><div class="label">รวมค่าปรับที่ต้องชำระทั้งสิ้น:</div><div class="val" style="font-weight: bold; font-size: 18px;" id="out-actualFine"></div><span style="margin-left: 10px; font-weight: bold;">บาท</span></div>
-
-            <div class="footer-info">
-                <div class="ticket-row"><div class="label">เจ้าหน้าที่ของรัฐ (Officer):</div><div class="val" id="out-officer"></div></div>
-                <div class="ticket-row">
-                    <div class="label">รหัส (Code):</div><div class="val" style="width: 20%;" id="out-offCode"></div>
-                    <div class="label" style="width: 25%; padding-left: 10px;">หน่วยงาน (Agency):</div><div class="val" style="width: 35%;" id="out-agency"></div>
-                </div>
-                <p style="font-size: 12px; color: #666; text-align: justify; margin-top: 15px;">
-                    อาศัยอำนาจตามความในมาตรา 140 วรรคสี่ และมาตรา 141 แห่ง พ.ร.บ.จราจรทางบก พ.ศ. 2522 ผู้รับใบสั่งต้องชำระค่าปรับภายใน 30 วันนับแต่วันที่ได้รับใบสั่ง
-                </p>
-            </div>
-
-            <div class="qr-section">
-                <div class="qr-box">
-                    <div class="qr-placeholder">QR Code</div>
-                    <p style="font-size: 12px; margin-top: 5px;">สิทธิตามกฎหมาย</p>
-                </div>
-                <div class="qr-box">
-                    <div class="qr-placeholder">QR Code</div>
-                    <p style="font-size: 12px; margin-top: 5px; color: var(--primary-red); font-weight: bold;">แสกนชำระค่าปรับ</p>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script>
-        const fields = [
-            'ticketNo', 'driver', 'idNo', 'vehType', 'plate', 
-            'location', 'date', 'time', 'offence', 'maxFine', 
-            'actualFine', 'officer', 'offCode', 'agency'
-        ];
-        
-        fields.forEach(field => {
-            const inputEl = document.getElementById(`in-${field}`);
-            const outputEl = document.getElementById(`out-${field}`);
-            
-            inputEl.addEventListener('input', function() {
-                // จัดรูปแบบวันที่ให้สวยงามถ้าเป็นฟิลด์ date
-                if (field === 'date' && this.value) {
-                    const d = new Date(this.value);
-                    outputEl.textContent = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-                } 
-                // จัดรูปแบบเวลาให้มี น. ต่อท้าย
-                else if (field === 'time' && this.value) {
-                    outputEl.textContent = this.value + ' น.';
-                }
-                else {
-                    outputEl.textContent = this.value;
-                }
-            });
-        });
+        function update(id, val) {
+            document.getElementById('out-' + id).textContent = val;
+        }
     </script>
 </body>
 </html>
